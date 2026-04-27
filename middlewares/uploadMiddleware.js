@@ -5,7 +5,9 @@ const path = require("path");
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '../uploads'));
+        const dest = path.join(__dirname, '../uploads');
+        console.log("Upload destination:", dest);
+        cb(null, dest);
     },
     filename: (req, file, cb) => {
         cb(null, `${Date.now()}-${file.originalname}`);
