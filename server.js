@@ -5,6 +5,9 @@ const path = require("path");
 const fs = require("fs");
 const connectDB = require("./config/db")
 const app = express();
+
+// Trust proxy headers so req.protocol reflects HTTPS behind proxy
+app.set("trust proxy", true);
 const authRoutes = require("./routes/authRoutes")
 const sessionRoutes = require("./routes/sessionRoutes");
 const questionRoutes = require("./routes/questionRoutes");
