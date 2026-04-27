@@ -1,12 +1,17 @@
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 
 //configure storage
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const dest = path.join(__dirname, '../uploads');
+        console.log("Middleware __dirname:", __dirname);
         console.log("Upload destination:", dest);
+        if (!fs.existsSync(dest)) {
+            fs.mkdirSync(dest, { recursive: true });
+        }
         cb(null, dest);
     },
     filename: (req, file, cb) => {
@@ -24,6 +29,10 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-const upload = multer({ storage, fileFilter });
+const upload = multer({ 
+    storage, 
+    fileFilter,
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
 
 module.exports = upload;

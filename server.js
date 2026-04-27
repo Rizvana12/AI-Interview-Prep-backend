@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const fs = require("fs");
 const connectDB = require("./config/db")
 const app = express();
 const authRoutes = require("./routes/authRoutes")
@@ -10,7 +11,13 @@ const questionRoutes = require("./routes/questionRoutes");
 const {protect} = require('./middlewares/authMiddleware')
 const { generateInterviewQuestions, generateConceptExplanation } = require("./controllers/aiController");
 
-//Middleware to handle CORS 
+// ensure uploads directory exists before any requests
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Middleware to handle CORS 
 
 app.use(
     cors({
@@ -25,10 +32,10 @@ connectDB().catch(err => {
     process.exit(1);
 });
 
-//Middleware
+// Middleware
 app.use(express.json());
 
-//Routes
+// Routes
 
 app.use("/api/auth", authRoutes);
 app.use("/api/sessions", sessionRoutes);
@@ -36,9 +43,18 @@ app.use("/api/questions", questionRoutes);
 app.use("/api/ai/generate-questions", protect, generateInterviewQuestions);
 app.use("/api/ai/generate-explanation", protect, generateConceptExplanation)
 
-//Serve uploads folder
-app.use("/uploads", express.static(path.join(__dirname, "uploads"), {}));
+// Serve uploads folder
+app.use("/uploads", express.static(uploadsDir, {}));
 
-//start server
+// Error handler
+app.use((err, req, res, next) => {
+    console.error("Unhandled error:", err);
+    if (res.headersSent) {
+        return next(err);
+    }
+    res.status(err.status || 500).json({ message: err.message || "Server error" });
+});
+
+// start server
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, ()=> console.log(`Server running on port ${PORT}`))
